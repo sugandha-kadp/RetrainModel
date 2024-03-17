@@ -1,0 +1,50 @@
+import os
+import shutil
+
+def clear_folder(directory):
+    # Delete all contents in the directory
+    for root, dirs, files in os.walk(directory):
+        for f in files:
+            os.remove(os.path.join(root, f))
+        for d in dirs:
+            shutil.rmtree(os.path.join(root, d))
+
+def filter_folders_by_min_images(directory, min_image_count):
+    folders_with_min_images = []
+    for root, dirs, files in os.walk(directory):
+        for d in dirs:
+            path = os.path.join(root, d)
+            num_files = len(os.listdir(path))
+            if num_files >= min_image_count:
+                folders_with_min_images.append(path)
+    return folders_with_min_images
+
+# Define the path to your dataset
+dataset_path = "/content/drive/MyDrive/Colab Notebooks/test_dataset"
+
+# Filter folders based on the minimum number of images required
+min_image_count = 60
+folders_with_min_images = filter_folders_by_min_images(dataset_path, min_image_count)
+
+tmp_dataset_path = "/content/drive/MyDrive/Colab Notebooks/temp_dataset"
+
+# Clear the temporary dataset folder
+clear_folder(tmp_dataset_path)
+
+# Calculate the target number of images per folder
+if folders_with_min_images:
+    for folder in folders_with_min_images:
+        # Copy only up to the target number of images from each folder
+        images_to_copy = os.listdir(folder)[:min_image_count]
+        # Create a new folder in the temporary dataset folder
+        temp_folder_name = os.path.basename(folder)
+        temp_folder_path = os.path.join(tmp_dataset_path, temp_folder_name)
+        os.makedirs(temp_folder_path, exist_ok=True)
+        # Copy images to the new folder in the temporary dataset folder
+        for image in images_to_copy:
+            shutil.copy(os.path.join(folder, image), temp_folder_path)
+
+# New dataset path after copying images to the temporary folder
+new_dataset_path = tmp_dataset_path
+
+print("Dataset copied successfully.")
